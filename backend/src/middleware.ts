@@ -13,7 +13,4 @@ export const userMiddleware = (req:Request, res:Response, next:NextFunction) => 
     req.userId = decoded.id;
     next()
   });
-
-
-
 };

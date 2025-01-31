@@ -6,6 +6,7 @@ import { z } from "zod";
 import { User, Link, Tag, Content } from "./db";
 import { JWT_SECRET } from "./config";
 import { userMiddleware } from "./middleware";
+import { random } from "./utils";
 
 mongoose.connect(
   "mongodb+srv://franksedin:Testing%40123@cluster0.iduu6.mongodb.net/brainly"
@@ -89,18 +90,64 @@ app.get("/api/v1/content", userMiddleware, async (req, res) => {
   //@ts-ignore
   const userId = req.userId;
 
-  const contentData = await Content.find({ userId }).populate("userId","username");
+  const contentData = await Content.find({ userId }).populate(
+    "userId",
+    "username"
+  );
 
   res.json({
     content: contentData,
   });
 });
 
-app.delete("/api/v1/content", (req, res) => {});
+app.delete("/api/v1/content", userMiddleware, async (req, res) => {
+  const contentId = req.body.contentId;
+  //@ts-ignore
+  const userId = req.userId;
+  await Content.deleteMany({
+    contentId,
+    userId: userId,
+  });
 
-app.post("/api/v1/brain/share", (req, res) => {});
+  res.json({
+    message: "Content is deleted",
+  });
+});
 
-app.get("/api/v1/brain/:shareLink", (req, res) => {});
+app.post("/api/v1/brain/share", userMiddleware, async (req, res) => {
+  const share = req.body.share;
+  if (share) {
+    //@ts-ignore
+    await Link.create({ userId: req.userId, hash: random(10) });
+  } else {
+    await Link.deleteOne({
+      //@ts-ignore
+      userId: req.userId,
+    });
+  }
+
+  res.json({
+    message: "Updated Shareable link",
+  });
+});
+
+app.get("/api/v1/brain/:shareLink", async (req, res) => {
+  const hash = req.params.shareLink;
+  const linkResponse = await Link.findOne({ hash });
+  if (!linkResponse) {
+    res.status(411).json({
+      message: "Invalid link",
+    });
+  }
+
+  const contentData = await Content.find({userId:linkResponse?.userId})
+  const user = await User.findOne({_id:linkResponse?.userId})
+
+  res.json({
+    usename:user?.username,
+    content:contentData
+  })
+});
 
 app.listen(PORT, () => {
   console.log(`App is listeing at ${PORT}`);
