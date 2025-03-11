@@ -7,15 +7,17 @@ import { User, Link, Tag, Content } from "./db";
 import { JWT_SECRET } from "./config";
 import { userMiddleware } from "./middleware";
 import { random } from "./utils";
+import cors from "cors";
 
 mongoose.connect(
-  "mongodb+srv://franksedin:Testing%40123@cluster0.iduu6.mongodb.net/brainly"
+  "mongodb+srv://franksedin:Testing%40123@cluster0.iduu6.mongodb.net/brainly",
 );
 
 const PORT = 3000;
 
 const app = express();
 app.use(express.json());
+app.use(cors())
 
 // // zod schemas
 
@@ -25,10 +27,11 @@ app.use(express.json());
 // });
 
 app.post("/api/v1/signup", async (req, res) => {
+  console.log("signup")
   // TODO: ZOD validation
   const username = req.body.username;
   const password = req.body.password;
-
+  
   const hashedPassword = await bcrypt.hash(password, 6);
 
   try {
@@ -77,9 +80,10 @@ app.post("/api/v1/signin", async (req, res) => {
 app.post("/api/v1/content", userMiddleware, async (req, res) => {
   const link = req.body.link;
   const type = req.body.type;
+  const title = req.body.title;
   //@ts-ignore
   const userId = req.userId;
-  await Content.create({ link, type, userId, tags: [] });
+  await Content.create({ link, type, userId, tags: [], title });
 
   res.json({
     message: "Content Added",
@@ -92,7 +96,7 @@ app.get("/api/v1/content", userMiddleware, async (req, res) => {
 
   const contentData = await Content.find({ userId }).populate(
     "userId",
-    "username"
+    "username",
   );
 
   res.json({
@@ -140,13 +144,13 @@ app.get("/api/v1/brain/:shareLink", async (req, res) => {
     });
   }
 
-  const contentData = await Content.find({userId:linkResponse?.userId})
-  const user = await User.findOne({_id:linkResponse?.userId})
+  const contentData = await Content.find({ userId: linkResponse?.userId });
+  const user = await User.findOne({ _id: linkResponse?.userId });
 
   res.json({
-    usename:user?.username,
-    content:contentData
-  })
+    usename: user?.username,
+    content: contentData,
+  });
 });
 
 app.listen(PORT, () => {
