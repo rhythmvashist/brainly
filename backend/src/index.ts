@@ -10,14 +10,14 @@ import { random } from "./utils";
 import cors from "cors";
 
 mongoose.connect(
-  "mongodb+srv://franksedin:Testing%40123@cluster0.iduu6.mongodb.net/brainly",
+  "mongodb+srv://franksedin:Testing%40123@cluster0.iduu6.mongodb.net/brainly"
 );
 
 const PORT = 3000;
 
 const app = express();
 app.use(express.json());
-app.use(cors())
+app.use(cors());
 
 // // zod schemas
 
@@ -27,11 +27,11 @@ app.use(cors())
 // });
 
 app.post("/api/v1/signup", async (req, res) => {
-  console.log("signup")
+  console.log("signup");
   // TODO: ZOD validation
   const username = req.body.username;
   const password = req.body.password;
-  
+
   const hashedPassword = await bcrypt.hash(password, 6);
 
   try {
@@ -96,7 +96,7 @@ app.get("/api/v1/content", userMiddleware, async (req, res) => {
 
   const contentData = await Content.find({ userId }).populate(
     "userId",
-    "username",
+    "username"
   );
 
   res.json({
