@@ -8,10 +8,14 @@ import { JWT_SECRET } from "./config";
 import { userMiddleware } from "./middleware";
 import { random } from "./utils";
 import cors from "cors";
+import { config } from "dotenv";
 
-mongoose.connect(
-  "mongodb+srv://franksedin:Testing%40123@cluster0.iduu6.mongodb.net/brainly"
-);
+config();
+
+if (!process.env.DB_URL) {
+  throw new Error("DB_URL is not defined in the environment variables");
+}
+mongoose.connect(process.env.DB_URL);
 
 const PORT = 3000;
 
